@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>硅基魔法小镇 3.0 - 终极 RPG 世界</title>
+<style>
+body{margin:0;padding:0;overflow:hidden;display:flex;height:100vh;width:100vw;font-family:-apple-system,sans-serif;user-select:none;background:#0f172a;}
+#sidebar{width:280px;background:#fff;z-index:100;display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,.6);}
+#s-head{background:#f8fafc;padding:20px;border-bottom:2px solid #e2e8f0;}
+#s-title{font-size:18px;font-weight:900;color:#0f172a;display:flex;align-items:center;gap:8px;}
+#s-content{padding:20px;flex:1;overflow-y:auto;color:#1e293b;}
+.l-title{font-weight:bold;margin:15px 0 10px;font-size:13px;color:#64748b;}
+.l-row{display:flex;align-items:center;margin-bottom:8px;font-size:13px;font-weight:500;}
+.l-line{width:24px;height:3px;margin-right:10px;border-radius:2px;}
+.l-icon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;margin-right:10px;}
+.l-icon .bldg{transform:scale(.5);margin:0;}
+.filter-label { cursor: pointer; padding: 6px; border-radius: 6px; transition: background 0.2s; margin-left: -6px; }
+.filter-label:hover { background: #f1f5f9; }
+.filter-label input { width: 16px; height: 16px; margin-right: 10px; cursor: pointer; }
+
+/* 🌊 经典 RPG 像素海洋 (连续贯通) */
+#map{flex:1;position:relative;overflow:hidden;background-color:#2563eb;
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' fill='%232563eb'/%3E%3Crect x='4' y='4' width='8' height='4' fill='%233b82f6'/%3E%3Crect x='6' y='8' width='8' height='2' fill='%2360a5fa'/%3E%3C/svg%3E");
+background-size:32px 32px;image-rendering:pixelated;}
+
+/* 🌍 5大 RPG 地貌 (互不触碰，留出完美海洋通道) */
+.z-shape{position:absolute;top:0;left:0;width:100%;height:100%;opacity:1;z-index:0;background-size:32px 32px;image-rendering:pixelated;filter:drop-shadow(0 6px 0 rgba(0,0,0,0.4));}
+
+/* 🏰 巨头王城 (中心) - 皇家紫魔法地貌 */
+#z-giant{clip-path:polygon(38% 28%, 62% 28%, 62% 38%, 72% 38%, 72% 62%, 62% 62%, 62% 72%, 38% 72%, 38% 62%, 28% 62%, 28% 38%, 38% 38%);
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' fill='%236b21a8'/%3E%3Cpath d='M4 4h8v8H4zm16 16h8v8h-8z' fill='%239333ea'/%3E%3Crect x='22' y='6' width='4' height='4' fill='%23d8b4fe'/%3E%3C/svg%3E");}
+
+/* 🌲 应用平原 (西北) */
+#z-app{clip-path:polygon(0% 0%, 45% 0%, 45% 18%, 28% 18%, 28% 28%, 18% 28%, 18% 45%, 0% 45%);
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' fill='%2386efac'/%3E%3Cpath d='M6 4h4v2H6zm-2 2h8v4H4zm2 4h4v2H6z' fill='%2315803d'/%3E%3C/svg%3E");}
+
+/* ❄️ 模型雪原 (东北) */
+#z-model{clip-path:polygon(55% 0%, 100% 0%, 100% 45%, 82% 45%, 82% 28%, 72% 28%, 72% 18%, 55% 18%);
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' fill='%23e0f2fe'/%3E%3Cpath d='M14 4h4v4h-4zm-2 4h8v4h-8zm-2 4h12v4h-12z' fill='%230284c7'/%3E%3C/svg%3E");}
+
+/* 沼泽地 (西南) */
+#z-infra{clip-path:polygon(0% 55%, 18% 55%, 18% 72%, 28% 72%, 28% 82%, 45% 82%, 45% 100%, 0% 100%);
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' fill='%23a3e635'/%3E%3Cpath d='M4 4h8v4H4zm16 16h8v4h-8z' fill='%233f6212'/%3E%3C/svg%3E");}
+
+/* ⛰️ 算力群山 (东南) */
+#z-hard{clip-path:polygon(100% 55%, 82% 55%, 82% 72%, 72% 72%, 72% 82%, 55% 82%, 55% 100%, 100% 100%);
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' fill='%23fcd34d'/%3E%3Cpath d='M12 8h8v2h-8zm-2 2h12v2h-12zm-2 2h16v2H8z' fill='%23b45309'/%3E%3C/svg%3E");}
+
+.z-tag{position:absolute;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:bold;color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(6px);box-shadow:0 4px 12px rgba(0,0,0,.4);z-index:20;}
+
+/* 🐳 游荡的像素鲸鱼 (严格限制在海洋通道内) */
+.whale { position: absolute; width: 48px; height: 32px; z-index: 2; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='16'%3E%3Crect x='4' y='8' width='16' height='6' fill='%231e293b'/%3E%3Crect x='2' y='10' width='2' height='4' fill='%231e293b'/%3E%3Crect x='0' y='8' width='2' height='2' fill='%231e293b'/%3E%3Crect x='0' y='12' width='2' height='2' fill='%231e293b'/%3E%3Crect x='20' y='10' width='2' height='4' fill='%231e293b'/%3E%3Crect x='6' y='10' width='2' height='2' fill='%23f8fafc'/%3E%3C/svg%3E"); background-size: cover; image-rendering: pixelated; }
+.whale .spout { position: absolute; top: -32px; left: 24px; width: 16px; height: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='16'%3E%3Crect x='2' y='8' width='4' height='8' fill='%23bae6fd'/%3E%3Crect x='0' y='4' width='2' height='4' fill='%23bae6fd'/%3E%3Crect x='6' y='4' width='2' height='4' fill='%23bae6fd'/%3E%3Crect x='2' y='0' width='4' height='2' fill='%23bae6fd'/%3E%3C/svg%3E"); background-size: cover; image-rendering: pixelated; opacity: 0; animation: spoutAnim 4s infinite; }
+
+.w1 { animation: swim1 22s linear infinite; }
+.w2 { animation: swim2 26s linear infinite; }
+.w3 { animation: swim3 24s linear infinite; }
+.w4 { animation: swim4 28s linear infinite; }
+
+@keyframes swim1 { 0%{transform:translate(0,0) scaleX(1)} 45%{transform:translate(15vw,0) scaleX(1)} 50%{transform:translate(15vw,0) scaleX(-1)} 95%{transform:translate(0,0) scaleX(-1)} 100%{transform:translate(0,0) scaleX(1)} }
+@keyframes swim2 { 0%{transform:translate(0,0) scaleX(-1)} 45%{transform:translate(-15vw,0) scaleX(-1)} 50%{transform:translate(-15vw,0) scaleX(1)} 95%{transform:translate(0,0) scaleX(1)} 100%{transform:translate(0,0) scaleX(-1)} }
+@keyframes swim3 { 0%{transform:translate(0,0) scaleX(1)} 45%{transform:translate(0,15vh) scaleX(1)} 50%{transform:translate(0,15vh) scaleX(-1)} 95%{transform:translate(0,0) scaleX(-1)} 100%{transform:translate(0,0) scaleX(1)} }
+@keyframes swim4 { 0%{transform:translate(0,0) scaleX(-1)} 45%{transform:translate(0,-15vh) scaleX(-1)} 50%{transform:translate(0,-15vh) scaleX(1)} 95%{transform:translate(0,0) scaleX(1)} 100%{transform:translate(0,0) scaleX(-1)} }
+@keyframes spoutAnim { 0%, 60% { opacity: 0; transform: translateY(10px) scaleY(0.5); } 70%, 80% { opacity: 1; transform: translateY(0) scaleY(1); } 100% { opacity: 0; transform: translateY(-15px) scaleY(1.2); } }
+
+/* 节点与建筑样式 */
+.node{position:absolute;transform:translate(-50%,-50%);cursor:pointer;transition:all .3s cubic-bezier(0.25, 0.8, 0.25, 1);display:flex;flex-direction:column;align-items:center;}
+.node.nl{z-index:15;} .node.nm{z-index:12;} .node.ns{z-index:10;}
+.n-label{margin-top:8px;color:#fff;font-size:11px;font-weight:bold;background:rgba(0,0,0,.75);padding:2px 6px;border-radius:4px;white-space:nowrap;transition:all .3s ease;border:1px solid rgba(255,255,255,.2);}
+.node.dim{opacity:.15;filter:grayscale(100%);}
+.node.h1{transform:translate(-50%,-50%) scale(1.15);z-index:30 !important;filter:drop-shadow(0 0 10px rgba(255,255,255,.8));}
+.node.h2{opacity:.6;z-index:20 !important;}
+.node.act{transform:translate(-50%,-50%) scale(1.3);z-index:50 !important;filter:drop-shadow(0 0 15px #fff);}
+.node.act .n-label{background:#e94560;font-size:13px;border-color:#fff;}
+.node.hovered{z-index:100 !important;}
+
+.bldg{image-rendering:pixelated;}
+.bldg-giant{width:36px;height:36px;background:#4a5568;border:2px solid #1a202c;position:relative;box-shadow:-12px -10px 0 -2px #4a5568,-12px -10px 0 0 #1a202c,12px -10px 0 -2px #4a5568,12px -10px 0 0 #1a202c;}
+.bldg-giant::after{content:"";position:absolute;bottom:0;left:12px;width:12px;height:16px;background:#ecc94b;border-radius:6px 6px 0 0;border:2px solid #1a202c;border-bottom:none;}
+.bldg-hard{width:44px;height:24px;background:#718096;border:2px solid #1a202c;position:relative;}
+.bldg-hard::before{content:"";position:absolute;bottom:24px;left:6px;width:8px;height:16px;background:#a0aec0;box-shadow:20px 0 0 #a0aec0;}
+.bldg-model{width:20px;height:40px;background:#3182ce;border:2px solid #1a202c;border-radius:10px 10px 0 0;position:relative;}
+.bldg-model::after{content:"";position:absolute;top:6px;left:6px;width:4px;height:4px;background:#ebf8ff;box-shadow:0 10px 0 #ebf8ff,0 20px 0 #ebf8ff;}
+.bldg-infra{width:28px;height:36px;background:#38a169;border:2px solid #1a202c;background-image:repeating-linear-gradient(to bottom,transparent,transparent 6px,#1a202c 6px,#1a202c 8px);}
+.bldg-app{width:28px;height:20px;background:#d69e2e;border:2px solid #1a202c;margin-top:14px;position:relative;}
+.bldg-app::before{content:"";position:absolute;top:-16px;left:-6px;border-left:18px solid transparent;border-right:18px solid transparent;border-bottom:14px solid #dd6b20;}
+
+.sz-l{transform:scale(1.2);transform-origin:bottom center;margin-bottom:6px;}
+.sz-m{transform:scale(0.9);transform-origin:bottom center;}
+.sz-s{transform:scale(0.7);transform-origin:bottom center;margin-bottom:-4px;}
+
+.edge{transition:all .3s ease, x1 .3s ease, y1 .3s ease, x2 .3s ease, y2 .3s ease; opacity:.15;}
+.edge.dim{opacity:.02;}
+.edge.h1{opacity:1;stroke-width:3px;filter:drop-shadow(0 0 5px currentColor);}
+.edge.h2{opacity:.4;stroke-width:2px;}
+.edge.hide{opacity:0 !important; pointer-events:none;}
+.e-inv{stroke:#fbbf24;} .e-com{stroke:#ef4444;stroke-dasharray:5 5;} .e-coo{stroke:#10b981;} .e-sup{stroke:#a855f7;}
+</style>
+</head>
+<body>
+<div id="sidebar">
+    <div id="s-head"><div id="s-title">⚔️ 硅基魔法小镇 3.0</div><div style="font-size:12px;color:#64748b;margin-top:5px;">终极 8-bit RPG 世界</div></div>
+    <div id="s-content">
+        <div style="font-size:12px;color:#ef4444;margin-bottom:15px;font-weight:bold;">👉 点击地图建筑查看多重关系链</div>
+        <div class="l-title">建筑类型 (5大大陆)</div>
+        <div class="l-row"><div class="l-icon"><div class="bldg bldg-giant"></div></div> 巨头王城 (中心)</div>
+        <div class="l-row"><div class="l-icon"><div class="bldg bldg-hard"></div></div> 算力群山 (东南)</div>
+        <div class="l-row"><div class="l-icon"><div class="bldg bldg-model"></div></div> 模型雪原 (东北)</div>
+        <div class="l-row"><div class="l-icon"><div class="bldg bldg-infra"></div></div> 基建沼泽 (西南)</div>
+        <div class="l-row"><div class="l-icon"><div class="bldg bldg-app"></div></div> 应用平原 (西北)</div>
+        
+        <div class="l-title" style="margin-top:25px;">关系链路 (点击打钩筛选)</div>
+        <label class="l-row filter-label"><input type="checkbox" value="inv" checked class="edge-filter" style="accent-color:#fbbf24;"><span class="l-line" style="background:#fbbf24;"></span> 投资/控股</label>
+        <label class="l-row filter-label"><input type="checkbox" value="com" checked class="edge-filter" style="accent-color:#ef4444;"><span class="l-line" style="border-top:3px dashed #ef4444;background:transparent;"></span> 竞争/威胁</label>
+        <label class="l-row filter-label"><input type="checkbox" value="coo" checked class="edge-filter" style="accent-color:#10b981;"><span class="l-line" style="background:#10b981;"></span> 合作/联盟</label>
+        <label class="l-row filter-label"><input type="checkbox" value="sup" checked class="edge-filter" style="accent-color:#a855f7;"><span class="l-line" style="background:#a855f7;"></span> 算力/上下游</label>
+    </div>
+</div>
+<div id="map">
+    <!-- 5大 RPG 大陆 -->
+    <div class="z-shape" id="z-app"></div>
+    <div class="z-shape" id="z-model"></div>
+    <div class="z-shape" id="z-infra"></div>
+    <div class="z-shape" id="z-hard"></div>
+    <div class="z-shape" id="z-giant"></div>
+    
+    <!-- 4只游荡的像素鲸鱼 (放置在连续的海洋通道中) -->
+    <div class="whale w1" style="top: 22%; left: 35%;"><div class="spout"></div></div>
+    <div class="whale w2" style="top: 76%; left: 60
+%;"><div class="spout"></div></div>
+    <div class="whale w3" style="top: 35%; left: 22%;"><div class="spout"></div></div>
+    <div class="whale w4" style="top: 60%; left: 76%;"><div class="spout"></div></div>
+
+    <!-- 大陆标签 -->
+    <div class="z-tag" style="top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(107,33,168,.8);">巨头王城</div>
+    <div class="z-tag" style="top:12%;left:15%;background:rgba(21,128,61,.8);">应用平原</div>
+    <div class="z-tag" style="top:12%;right:15%;background:rgba(2,132,199,.8);">模型雪原</div>
+    <div class="z-tag" style="bottom:12%;left:15%;background:rgba(63,98,18,.8);">基建沼泽</div>
+    <div class="z-tag" style="bottom:12%;right:15%;background:rgba(180,83,9,.8);">算力群山</div>
+    
+    <svg id="edges" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;"></svg>
+</div>
+<script>
+const N=[['msft','微软','giant'],['goog','谷歌','giant'],['meta','Meta','giant'],['amzn','亚马逊','giant'],['aapl','苹果','giant'],['tenc','腾讯','giant'],['baba','阿里','giant'],['byted','字节跳动','giant'],['baidu','百度','giant'],['ibm','IBM','giant'],['oracle','甲骨文','giant'],['tesla','特斯拉','giant'],['huawei','华为','giant'],['softbank','软银','giant'],['x','X(推特)','giant'],['samsung','三星','giant'],['cisco','思科','giant'],['salesforce','Salesforce','giant'],['adobe','Adobe','giant'],['sap','SAP','giant'],['nvda','英伟达','hard'],['amd','AMD','hard'],['tsmc','台积电','hard'],['intel','英特尔','hard'],['asml','阿斯麦','hard'],['arm','ARM','hard'],['qcom','高通','hard'],['broadcom','博通','hard'],['smic','中芯国际','hard'],['camba','寒武纪','hard'],['cerebras','Cerebras','hard'],['groq','Groq','hard'],['tenstorrent','Tenstorrent','hard'],['skhynix','SK海力士','hard'],['micron','美光','hard'],['foxconn','富士康','hard'],['supermicro','超微电脑','hard'],['dell','戴尔','hard'],['hp','惠普','hard'],['lenovo','联想','hard'],['openai','OpenAI','model'],['anthropic','Anthropic','model'],['mistral','Mistral','model'],['cohere','Cohere','model'],['xai','xAI','model'],['moonshot','月之暗面','model'],['minimax','MiniMax','model'],['zhipu','智谱AI','model'],['baichuan','百川智能','model'],['01ai','零一万物','model'],['stepfun','阶跃星辰','model'],['shengshu','生数科技','model'],['ai21','AI21 Labs','model'],['adept','Adept','model'],['inflection','Inflection','model'],['sakana','Sakana AI','model'],['imbu','Imbue','model'],['ideogram','Ideogram','model'],['luma','Luma AI','model'],['haiyu','海螺AI','model'],['hf','HuggingFace','infra'],['scale','Scale AI','infra'],['pinecone','Pinecone','infra'],['databricks','Databricks','infra'],['snowflake','Snowflake','infra'],['langchain','LangChain','infra'],['milvus','Zilliz','infra'],['weaviate','Weaviate','infra'],['together','Together AI','infra'],['coreweave','CoreWeave','infra'],['vercel','Vercel','infra'],['supabase','Supabase','infra'],['mongodb','MongoDB','infra'],['qdrant','Qdrant','infra'],['chroma','Chroma','infra'],['neon','Neon','infra'],['modal','Modal','infra'],['replicate','Replicate','infra'],['anyscale','Anyscale','infra'],['lambdalabs','Lambda Labs','infra'],['mj','Midjourney','app'],['runway','Runway','app'],['pika','Pika','app'],['perplexity','Perplexity','app'],['notion','Notion','app'],['jasper','Jasper','app'],['copyai','Copy.ai','app'],['character','Character.ai','app'],['suno','Suno','app'],['heygen','HeyGen','app'],['canva','Canva','app'],['synthesia','Synthesia','app'],['descript','Descript','app'],['tome','Tome','app'],['gamma','Gamma','app'],['harvey','Harvey','app'],['glean','Glean','app'],['github','GitHub','app'],['cursor','Cursor','app'],['replit','Replit','app']];
+const L=[['baidu','camba','com'],['baidu','zhipu','com'],['baidu','nvda','sup'],['baidu','aapl','coo'],['aapl','openai','coo'],['aapl','goog','sup'],['aapl','tsmc','sup'],['aapl','arm','sup'],['adobe','aapl','coo'],['byted','moonshot','inv'],['byted','minimax','inv'],['byted','nvda','sup'],['byted','oracle','sup'],['ibm','hf','coo'],['ibm','meta','coo'],['ibm','aapl','coo'],['ibm','nvda','sup'],['msft','openai','inv'],['msft','meta','coo'],['msft','nvda','sup'],['msft','coreweave','sup'],['msft','github','inv'],['msft','amzn','com'],['msft','goog','com'],['goog','anthropic','inv'],['goog','nvda','sup'],['goog','broadcom','sup'],['goog','openai','com'],['amzn','anthropic','inv'],['amzn','nvda','sup'],['amzn','hf','coo'],['amzn','scale','coo'],['tenc','zhipu','inv'],['tenc','minimax','inv'],['tenc','moonshot','inv'],['tenc','baichuan','inv'],['tenc','nvda','sup'],['baba','moonshot','inv'],['baba','zhipu','inv'],['baba','minimax','inv'],['baba','01ai','inv'],['baba','baichuan','inv'],['baba','nvda','sup'],['nvda','tsmc','sup'],['nvda','skhynix','sup'],['nvda','arm','sup'],['nvda','coreweave','inv'],['nvda','hf','inv'],['nvda','together','inv'],['nvda','sakana','inv'],['amd','tsmc','sup'],['amd','nvda','com'],['amd','intel','com'],['intel','tsmc','sup'],['intel','asml','sup'],['tsmc','asml','sup'],['softbank','arm','inv'],['softbank','openai','inv'],['softbank','perplexity','inv'],['tesla','xai','coo'],['tesla','nvda','sup'],['tesla','tsmc','sup'],['x','xai','inv'],['openai','anthropic','com'],['openai','scale','sup'],['openai','perplexity','com'],['databricks','snowflake','com'],['vercel','openai','coo'],['vercel','hf','coo'],['cursor','openai','sup'],['cursor','anthropic','sup'],['replit','openai','sup'],['canva','runway','coo'],['canva','openai','coo'],['salesforce','hf','inv'],['salesforce','anthropic','inv'],['salesforce','cohere','inv']];
+
+const Z={giant:{x:50,y:50},model:{x:78,y:22},hard:{x:78,y:78},infra:{x:22,y:78},app:{x:22,y:22}};
+const C={giant:0,model:0,hard:0,infra:0,app:0}, nodes={}, edges=[];
+const map=document.getElementById('map'), svg=document.getElementById('edges');
+const filters = { inv: true, com: true, coo: true, sup: true };
+let activeNode = null;
+
+N.forEach(n=>{
+    let [id,name,cat]=n, c=Z[cat], i=C[cat]++, a=i*2.4;
+    let r = (cat==='giant'? 4 : 3) + (cat==='giant'? 3.5 : 2.5) * Math.sqrt(i);
+    let px = c.x + Math.cos(a) * r, py = c.y + Math.sin(a) * r;
+    let szClass = i<4 ? 'l' : i<10 ? 'm' : 's'; 
+    let d=document.createElement('div'); 
+    d.className=`node n${szClass}`; d.id='n_'+id; 
+    d.style.left=px+'%'; d.style.top=py+'%';
+    d.innerHTML=`<div class="bldg bldg-${cat} sz-${szClass}"></div><div class="n-label">${name}</div>`;
+    map.appendChild(d); 
+    nodes[id]={el:d, origX:px, origY:py, currX:px, currY:py, links:[]};
+
+    d.addEventListener('mouseenter', () => {
+        d.classList.add('hovered');
+        let hx = nodes[id].origX, hy = nodes[id].origY;
+        Object.keys(nodes).forEach(k => {
+            if(k === id) return;
+            let nObj = nodes[k];
+            let dx = nObj.origX - hx, dy = nObj.origY - hy;
+            let dist = Math.sqrt(dx*dx + dy*dy) || 0.1;
+            if(dist < 8) { 
+                let push = ((8 - dist) / 8) * 5;
+                nObj.currX = nObj.origX + (dx/dist) * push;
+                nObj.currY = nObj.origY + (dy/dist) * push;
+                nObj.el.style.left = nObj.currX + '%';
+                nObj.el.style.top = nObj.currY + '%';
+            }
+        });
+        updateEdges();
+    });
+
+    d.addEventListener('mouseleave', () => {
+        d.classList.remove('hovered');
+        Object.keys(nodes).forEach(k => {
+            let nObj = nodes[k];
+            nObj.currX = nObj.origX; nObj.currY = nObj.origY;
+            nObj.el.style.left = nObj.origX + '%'; nObj.el.style.top = nObj.origY + '%';
+        });
+        updateEdges();
+    });
+});
+
+L.forEach((l,i)=>{
+    let [s,t,type]=l; if(!nodes[s]||!nodes[t])return;
+    let eid='e_'+i; 
+    nodes[s].links.push({t:t, id:eid, type:type}); nodes[t].links.push({t:s, id:eid, type:type});
+    let line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.id=eid; line.setAttribute('data-type', type); line.setAttribute('data-s', s); line.setAttribute('data-t', t);
+    line.setAttribute('x1',nodes[s].currX+'%'); line.setAttribute('y1',nodes[s].currY+'%'); 
+    line.setAttribute('x2',nodes[t].currX+'%'); line.setAttribute('y2',nodes[t].currY+'%'); 
+    line.setAttribute('class','edge e-'+type);
+    svg.appendChild(line); edges.push(line);
+});
+
+function updateEdges() {
+    edges.forEach(el => {
+        let s = el.getAttribute('data-s'), t = el.getAttribute('data-t');
+        el.setAttribute('x1', nodes[s].currX + '%'); el.setAttribute('y1', nodes[s].currY + '%');
+        el.setAttribute('x2', nodes[t].currX + '%'); el.setAttribute('y2', nodes[t].currY + '%');
+    });
+}
+
+function renderState() {
+    let h1N=new Set(), h2N=new Set(), h1E=new Set(), h2E=new Set();
+    if(activeNode) {
+        nodes[activeNode].links.forEach(l=>{
+            if(!filters[l.type]) return; 
+            h1N.add(l.t); h1E.add(l.id);
+            nodes[l.t].links.forEach(sl=>{ 
+                if(!filters[sl.type]) return;
+                if(sl.t!==activeNode && !h1N.has(sl.t)){ h2N.add(sl.t); h2E.add(sl.id); }
+            });
+        });
+    }
+    Object.keys(nodes).forEach(k=>{ 
+        let el = nodes[k].el; let baseClass = el.className.replace(/ act| h1| h2| dim/g,'');
+        if(!activeNode) el.className = baseClass;
+        else el.className = baseClass + ' ' + (k===activeNode?'act':h1N.has(k)?'h1':h2N.has(k)?'h2':'dim'); 
+    });
+    edges.forEach(el=>{
+        let type = el.getAttribute('data-type');
+        if(!filters[type]) { el.setAttribute('class', `edge e-${type} hide`); } 
+        else {
+            if(!activeNode) el.setAttribute('class', `edge e-${type}`);
+            else el.setAttribute('class', `edge e-${type}` + (h1E.has(el.id)?' h1':h2E.has(el.id)?' h2':' dim'));
+        }
+    });
+}
+
+document.querySelectorAll('.edge-filter').forEach(chk => {
+    chk.addEventListener('change', e => { filters[e.target.value] = e.target.checked; renderState(); });
+});
+
+document.addEventListener('click',e=>{
+    if(e.target.closest('.filter-label')) return; 
+    let n=e.target.closest('.node');
+    if(!n){ activeNode = null; } else { activeNode = n.id.slice(2); }
+    renderState();
+});
+</script>
+</body>
+</html>
